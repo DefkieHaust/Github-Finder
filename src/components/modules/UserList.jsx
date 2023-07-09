@@ -3,7 +3,7 @@ import UserCard from "./UserCard";
 import { useEffect, useState } from "react";
 import "./css/UserList.css"
 
-const UserList = ({ searched, setSearched }) => {
+const UserList = ({ searched }) => {
   const [users, setUsers] = useState([]);
   const [buffer, setBuffer] = useState("")
   const [loading, setLoading] = useState(true)

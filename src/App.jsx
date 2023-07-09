@@ -10,7 +10,7 @@ const App = () => {
   return (
     <div className="h-100">
       <Navbar setSearched={setSearched} />
-      <Main searched={searched} setSearched={setSearched} />
+      <Main searched={searched} />
       <Footer />
     </div>
   )
