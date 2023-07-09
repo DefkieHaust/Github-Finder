@@ -18,7 +18,7 @@ const UserList = ({ searched, setSearched }) => {
 
   async function getSearch(api) {
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500)
+    setTimeout(() => setLoading(false), 2000)
     let res = await axios.get(api);
     setUsers(res.data.items);
   }
@@ -28,7 +28,7 @@ const UserList = ({ searched, setSearched }) => {
     setUsers(res.data);
   }
 
-  useEffect(() => setTimeout(() => setLoading(false), 1500), [])
+  useEffect(() => setTimeout(() => setLoading(false), 2000), [])
 
   return (
     <div className="row gy-5 pb-3">
