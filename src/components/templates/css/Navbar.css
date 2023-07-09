@@ -1,0 +1,14 @@
+nav {
+  background: #010409;
+  border-bottom: 1px solid #444;
+}
+
+.logo {
+  font-size: 2.5rem;
+}
+
+@media (min-width: 767.98px) {
+    .small-width-input {
+      width: 25%;
+    }
+  }

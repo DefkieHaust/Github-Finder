@@ -1,0 +1,8 @@
+div > .card {
+    background: #010409;
+    border: 1px solid #444;
+}
+
+div > .card > img {
+    border-bottom: 1px solid #444;
+}
