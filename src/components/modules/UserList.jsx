@@ -1,6 +1,6 @@
 import axios from "axios";
 import UserCard from "./UserCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./css/UserList.css"
 
 const UserList = ({ searched, setSearched }) => {
@@ -27,6 +27,8 @@ const UserList = ({ searched, setSearched }) => {
     let res = await axios.get(api);
     setUsers(res.data);
   }
+
+  useEffect(() => setTimeout(setLoading(false), 1500), [])
 
   return (
     <div className="row gy-5 pb-3">
