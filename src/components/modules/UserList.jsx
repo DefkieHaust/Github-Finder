@@ -28,7 +28,7 @@ const UserList = ({ searched, setSearched }) => {
     setUsers(res.data);
   }
 
-  useEffect(() => setTimeout(setLoading(false), 1500), [])
+  useEffect(() => setTimeout(() => setLoading(false), 1500), [])
 
   return (
     <div className="row gy-5 pb-3">
