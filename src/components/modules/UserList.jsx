@@ -6,7 +6,7 @@ import "./css/UserList.css"
 const UserList = ({ searched, setSearched }) => {
   const [users, setUsers] = useState([]);
   const [buffer, setBuffer] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   if (searched && (searched !== buffer)) {
 
