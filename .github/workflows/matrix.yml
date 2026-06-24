@@ -89,11 +89,19 @@ jobs:
       - name: Concatenate and summarize
         run: |
           echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Node | Status | Total | Passed | Failed |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|-------|--------|--------|" >> $GITHUB_STEP_SUMMARY
           for f in all-results/*.json; do
-            echo "### $(basename $f)" >> $GITHUB_STEP_SUMMARY
-            if jq -e '.numPassedTests, .numFailedTests' "$f" >> $GITHUB_STEP_SUMMARY 2>/dev/null; then
-              :
+            node_ver=$(basename "$f" | grep -oP '\d+')
+            if jq -e '.numTotalTests, .numPassedTests, .numFailedTests' "$f" > /dev/null 2>&1; then
+              total=$(jq '.numTotalTests' "$f")
+              passed=$(jq '.numPassedTests' "$f")
+              failed=$(jq '.numFailedTests' "$f")
+              status="✅ Pass"
+              [ "$failed" -gt 0 ] && status="❌ Fail"
+              echo "| $node_ver | $status | $total | $passed | $failed |" >> $GITHUB_STEP_SUMMARY
             else
-              echo "⚠ Could not parse $f" >> $GITHUB_STEP_SUMMARY
+              echo "| $node_ver | ⚠ Error | - | - | - |" >> $GITHUB_STEP_SUMMARY
             fi
           done
