@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [20, 22, 24]       # 3 parallel jobs — 18, 20, 22 are current LTS releases
+        node: [20, 22, 24]       # 3 parallel jobs — 20, 22, 24 are current LTS releases
       fail-fast: false           # don't cancel siblings if one fails
 
     steps:
@@ -41,7 +41,7 @@ jobs:
         run: mkdir -p test-results
 
       - name: Run tests
-        run: npm test -- --reporter=json > test-results/results-node${{ matrix.node }}.json
+        run: npm test -- --reporter json --outputFile=test-results/results-node${{ matrix.node }}.json
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -91,5 +91,9 @@ jobs:
           echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
           for f in all-results/*.json; do
             echo "### $(basename $f)" >> $GITHUB_STEP_SUMMARY
-            cat $f | jq '.numPassedTests, .numFailedTests' >> $GITHUB_STEP_SUMMARY
+            if jq -e '.numPassedTests, .numFailedTests' "$f" >> $GITHUB_STEP_SUMMARY 2>/dev/null; then
+              :
+            else
+              echo "⚠ Could not parse $f" >> $GITHUB_STEP_SUMMARY
+            fi
           done
