@@ -5,30 +5,31 @@ import "./css/UserList.css"
 
 const UserList = ({ searched }) => {
   const [users, setUsers] = useState([]);
-  const [buffer, setBuffer] = useState("")
   const [loading, setLoading] = useState(true)
 
-  if (searched && (searched !== buffer)) {
+  useEffect(() => {
+    let ignore = false;
 
-    getSearch(`https://api.github.com/search/users?q=${searched}&client_id=${import.meta.env.VITE_ID}&client_secret=${import.meta.env.VITE_SECRET}`)
-    setBuffer(searched)
-  } else if (users.length === 0 && !searched) {
-    getUsers("https://api.github.com/users");
-  }
+    const loadingTimeout = setTimeout(() => setLoading(false), 2000);
 
-  async function getSearch(api) {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000)
-    let res = await axios.get(api);
-    setUsers(res.data.items);
-  }
+    if (searched) {
+      setLoading(true);
+      axios.get(`https://api.github.com/search/users?q=${searched}`)
+        .then(res => {
+          if (!ignore) setUsers(res.data.items);
+        });
+    } else {
+      axios.get("https://api.github.com/users")
+        .then(res => {
+          if (!ignore) setUsers(res.data);
+        });
+    }
 
-  async function getUsers(api) {
-    let res = await axios.get(api);
-    setUsers(res.data);
-  }
-
-  useEffect(() => setTimeout(() => setLoading(false), 2000), [])
+    return () => {
+      ignore = true;
+      clearTimeout(loadingTimeout);
+    };
+  }, [searched]);
 
   return (
     <div className="row gy-5 pb-3">
@@ -41,7 +42,7 @@ const UserList = ({ searched }) => {
         />
       )) : <h3>No Results found!</h3>}
 
-      <div className={"loader z-1 w-100 h-100 position-fixed top-0 start-0" + (loading ? "" : " d-none") } >
+      <div className={"loader z-1 w-100 h-100 position-fixed top-0 start-0" + (loading ? "" : " d-none")} >
         <i className="fa-solid fa-spinner fa-spin position-absolute" ></i>
       </div>
     </div>

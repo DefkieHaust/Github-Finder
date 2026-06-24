@@ -16,5 +16,20 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    'react/prop-types': 'off',
   },
+  overrides: [
+    {
+      files: ['**/*.test.jsx', 'src/test/**/*.js'],
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        beforeAll: 'readonly',
+        afterEach: 'readonly',
+        afterAll: 'readonly',
+      },
+    },
+  ],
 }
