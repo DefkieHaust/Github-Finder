@@ -1,0 +1,95 @@
+# .github/workflows/matrix.yml
+name: Matrix CI
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*.*.*']             # triggers on v1.2.3 style tags
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '0 2 * * *'         # (optional) nightly at 2am UTC
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Skip the build job?'
+        required: false
+        default: 'false'
+
+concurrency:                     # (optional) cancel superseded runs
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Matrix Test Job ───────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]       # 3 parallel jobs — 18, 20, 22 are current LTS releases
+      fail-fast: false           # don't cancel siblings if one fails
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Ensure test-results directory
+        run: mkdir -p test-results
+
+      - name: Run tests
+        run: npm test -- --reporter=json > test-results/results-node${{ matrix.node }}.json
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-node${{ matrix.node }}
+          path: test-results/results-node${{ matrix.node }}.json
+
+  # ── Build Job (conditional) ───────────────────────────
+  build:
+    runs-on: ubuntu-latest
+    needs: [test]                # waits for ALL matrix variants to pass
+    
+    # Only runs on push to master / version tag push, or workflow_dispatch without skip
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_build != 'true')
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci && npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # ── (Optional) Summary Job ────────────────────────────
+  summary:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          merge-multiple: true
+          path: all-results/
+
+      - name: Concatenate and summarize
+        run: |
+          echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+          for f in all-results/*.json; do
+            echo "### $(basename $f)" >> $GITHUB_STEP_SUMMARY
+            cat $f | jq '.numPassedTests, .numFailedTests' >> $GITHUB_STEP_SUMMARY
+          done
